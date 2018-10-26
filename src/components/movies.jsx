@@ -5,13 +5,15 @@ import Pagination from './common/pagination';
 import { getMovies } from '../services/fakeMovieService';
 import { getGenres } from '../services/fakeGenreService';
 import { paginate } from '../utils/paginate';
+import _ from 'lodash';
 
 class Movies extends Component {
   state = {
     movies: [],
     genres: [],
     pageSize: 4,
-    currentPage: 1
+    currentPage: 1,
+    sortColumn: { column: 'title', order: 'asc' }
   };
 
   componentDidMount() {
@@ -44,7 +46,16 @@ class Movies extends Component {
   };
 
   handleSort = column => {
-    console.log(column);
+    const sortColumn = { ...this.state.sortColumn };
+    if (sortColumn.column === column)
+      sortColumn.order = sortColumn.order === 'asc' ? 'desc' : 'asc';
+    else {
+      sortColumn.column = column;
+      sortColumn.order = 'asc';
+    }
+    this.setState({ sortColumn });
+
+    //this.setState({ sortColumn: { column, order: 'asc' } });
   };
 
   render() {
@@ -52,6 +63,7 @@ class Movies extends Component {
     const {
       pageSize,
       currentPage,
+      sortColumn,
       selectedGenre,
       movies: allMovies
     } = this.state;
@@ -63,8 +75,9 @@ class Movies extends Component {
         ? allMovies.filter(m => m.genre._id === selectedGenre._id)
         : allMovies;
 
-    //paginationh
-    const movies = paginate(filtered, currentPage, pageSize);
+    const sorted = _.orderBy(filtered, [sortColumn.column], [sortColumn.order]);
+
+    const movies = paginate(sorted, currentPage, pageSize);
 
     return (
       <div className="row">
